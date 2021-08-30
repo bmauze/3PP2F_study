@@ -242,5 +242,31 @@ def createScene(rootNode):
     RPCModelNode.createObject('Monitor', name='SldActM2', template='Rigid3', listening="1", indices='2', showTrajectories="0", TrajectoriesPrecision="0.01", TrajectoriesColor="0 0 1 1", sizeFactor="1", ExportPositions="true", ExportVelocities="true",ExportForces="true")
     RPCModelNode.createObject('Monitor', name='SldActM3', template='Rigid3', listening="1", indices='3', showTrajectories="0", TrajectoriesPrecision="0.01", TrajectoriesColor="0 0 1 1", sizeFactor="1", ExportPositions="true", ExportVelocities="true",ExportForces="true")
     
+######################################################
+# Visual Definition
+######################################################
+
+    VisuRigidNode = RPCModelNode.createChild('Platform')
+    VisuRigidNode.createObject('MeshSTLLoader', filename='plataforme.stl', name='loader', translation='0 0 0', rotation='0.0 0.0 180', scale3d='1 1 1')
+    VisuRigidNode.createObject('OglModel', src='@loader', name='visuPlatform')
+    VisuRigidNode.createObject('RigidMapping', output='@visuPlatform', index='0')
+    
+    VisuRigidNode1 = RPCModelNode.createChild('Act1')
+    VisuRigidNode1.createObject('MeshSTLLoader', filename='base_central.stl', name='loader', translation='0 0 0', rotation='0.0 0.0 180', scale3d='1 1 1')
+    VisuRigidNode1.createObject('OglModel', src='@loader', name='visuBC')
+    VisuRigidNode1.createObject('RigidMapping', output='@visuBC', index='1')
+    
+    VisuRigidNode2 = RPCModelNode.createChild('Act2')
+    VisuRigidNode2.createObject('MeshSTLLoader', filename='base_droite.stl', name='loader', translation='0 0 0', rotation='0.0 0.0 180.0', scale3d='1 1 1')
+    VisuRigidNode2.createObject('OglModel', src='@loader', name='visuBD')
+    VisuRigidNode2.createObject('RigidMapping', output='@visuBD', index='2')
+    
+    VisuRigidNode3 = RPCModelNode.createChild('Act3')
+    VisuRigidNode3.createObject('MeshSTLLoader', filename='base_gauche.stl', name='loader', translation='0 0 0', rotation='90 0.0 -90.0', scale3d='1 1 1')
+    VisuRigidNode3.createObject('OglModel', src='@loader', name='visuBG')
+    VisuRigidNode3.createObject('RigidMapping', output='@visuBG', index='3')
+    
+
+
     print('---------- Exiting createScene ----------')
     return rootNode
