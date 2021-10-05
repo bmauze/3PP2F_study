@@ -32,11 +32,12 @@ DOF1TransformNode1 = [[0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0,
                       [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [38.5839, -16.9767, 0.00216791, 0.3696, 0.099, 0.8924, -0.2391], 
                       [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [-38.5887, -16.9801, -0.000466096, -0.099, -0.3696, -0.2391, 0.8924], 
                       [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 1], [-4.58953, 41.9094, 0.000694121, -0.099, -0.3696, -0.2391, 0.8924]]
+
 ######################################################
 # Definition of global variables
 ######################################################
 stepTime=1.0e-1
-gravity=0.0#-9.81e3
+gravity=-9.81e3
 startingTime=0.1
 indexPlatform=0
 NorP=0
@@ -69,12 +70,14 @@ class PCRController(Sofa.PythonScriptController):
         self.stepDisplacement=stepDisplacement
         self.convergenceWaiting=convergenceWaiting
         self.recordingBool=0
-        self.q1=0 # Act1X
-        self.q2=0 # Act1Y
-        self.q3=0 # Act2X
-        self.q4=0 # Act2Y
-        self.q5=0 # Act3X
-        self.q6=0 # Act3Y
+        self.q1 = 0 # Act1X
+        self.q2 = 0 # Act1Y
+        self.q3 = 0 # Act2X
+        self.q4 = 0 # Act2Y
+        self.q5 = 0 # Act3X
+        self.q6 = 0 # Act3Y
+        self.extf = self.node.RPCModel.ExtF
+        self.offsetForce = 1e2
         # print('---------- Exiting reset  ----------')
         return 0
 
@@ -99,7 +102,7 @@ class PCRController(Sofa.PythonScriptController):
             MechPosList[3][1] = self.MechPosList[3][1] + self.node.RPCModel.Act3y.displacement
 
             self.node.RPCModel.MechanicalStructure.position=MechPosList
-            print(self.node.RPCModel.MechanicalStructure.position[0])
+            # print(self.node.RPCModel.MechanicalStructure.position[0])
             self.convergenceWaiting=0
         if self.convergenceWaiting==toleranceConvergence:
             forceActListBuf=[abs(self.node.RPCModel.Act1x.force), abs(self.node.RPCModel.Act1y.force), abs(self.node.RPCModel.Act2x.force), 
@@ -116,6 +119,7 @@ class PCRController(Sofa.PythonScriptController):
         return 0
 
     def onKeyPressed(self, key):
+        extForListBuf = self.extf.forces;
         print("Key Pressed")
         if key == Key.A: 
             if self.q1 == 1:
@@ -174,6 +178,23 @@ class PCRController(Sofa.PythonScriptController):
         elif key == Key.Q:
             self.NorP=0
             print("No displacement")
+
+        # external force:              
+        if key == Key.G: # mouvements suivant l'axe X
+            extForListBuf[0][0] = self.extf.forces[0][0] - self.offsetForce;
+        elif key == Key.H:
+            extForListBuf[0][0] = self.extf.forces[0][0] + self.offsetForce;
+        elif key == Key.J:      # mouvements suivant l'axe Y
+            extForListBuf[0][1] = self.extf.forces[0][1] + self.offsetForce;
+        elif key == Key.K:
+            extForListBuf[0][1] = self.extf.forces[0][1] - self.offsetForce;
+        elif key == Key.L:      # mouvements suivant l'axe Z
+            extForListBuf[0][2] = self.extf.forces[0][2] + self.offsetForce;
+        elif key == Key.M:
+            extForListBuf[0][2] = self.extf.forces[0][2] - self.offsetForce;
+        self.extf.forces = extForListBuf;
+        print('Position = ',self.node.RPCModel.MechanicalStructure.position[0])
+        print('Force = ' + str(self.extf.forces) + '\n')
         
 ######################################################
 # Definition of the scene
@@ -226,7 +247,7 @@ def createScene(rootNode):
     # Actuation variables
     deplacementActionneurx=70     #mm
     deplacementActionneury=70     #mm
-    SetpDeplacementActionneur=0.1 #mm
+    SetpDeplacementActionneur=0.1 #mm 
     forceActionneur=20e3            #(Kg*mm)/s^2
     # Definition of the different actuators
     PosAct1x = RPCModelNode.createObject('SlidingActuator', name='Act1x',template='Rigid3d', indices='1', direction='1 0 0 0 0 0', maxForce=forceActionneur, minForce=-forceActionneur, maxDispVariation=SetpDeplacementActionneur, maxPositiveDisp=deplacementActionneurx, maxNegativeDisp=deplacementActionneurx)
@@ -235,6 +256,9 @@ def createScene(rootNode):
     PosAct2y = RPCModelNode.createObject('SlidingActuator', name='Act2y',template='Rigid3d', indices='2', direction='0 1 0 0 0 0', maxForce=forceActionneur, minForce=-forceActionneur, maxDispVariation=SetpDeplacementActionneur, maxPositiveDisp=deplacementActionneury, maxNegativeDisp=deplacementActionneury)
     PosAct3x = RPCModelNode.createObject('SlidingActuator', name='Act3x',template='Rigid3d', indices='3', direction='1 0 0 0 0 0', maxForce=forceActionneur, minForce=-forceActionneur, maxDispVariation=SetpDeplacementActionneur, maxPositiveDisp=deplacementActionneurx, maxNegativeDisp=deplacementActionneurx)
     PosAct3y = RPCModelNode.createObject('SlidingActuator', name='Act3y',template='Rigid3d', indices='3', direction='0 1 0 0 0 0', maxForce=forceActionneur, minForce=-forceActionneur, maxDispVariation=SetpDeplacementActionneur, maxPositiveDisp=deplacementActionneury, maxNegativeDisp=deplacementActionneury)
+
+    #Force externe en -z
+    extF = RPCModelNode.createObject('ConstantForceField',name='ExtF', indices='0', forces="0 0 0  0 0 0")
 
     # Monitors management
     RPCModelNode.createObject('Monitor',    name='PlatM', template='Rigid3', listening="1", indices="0", showTrajectories="1", TrajectoriesPrecision="0.01", TrajectoriesColor="0 0 1 1", sizeFactor="1", ExportPositions="true", ExportVelocities="true",ExportForces="true")
@@ -247,8 +271,7 @@ def createScene(rootNode):
 ######################################################
 
     VisuRigidNode = RPCModelNode.createChild('Platform')
-    VisuRigidNode.createObject('MeshSTLLoader', filename='plataformevb.stl', name='loader', translation='0 0 0', rotation='0.0 0.0 180', scale3d='1 1 1')
-    # VisuRigidNode.createObject('MeshSTLLoader', filename='plataforme.stl', name='loader', translation='0 0 0', rotation='0.0 0.0 180', scale3d='1 1 1')
+    VisuRigidNode.createObject('MeshSTLLoader', filename='plataforme.stl', name='loader', translation='0 0 0', rotation='0.0 0.0 180', scale3d='1 1 1')
     VisuRigidNode.createObject('OglModel', src='@loader', name='visuPlatform')
     VisuRigidNode.createObject('RigidMapping', output='@visuPlatform', index='0')
     
