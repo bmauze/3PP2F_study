@@ -123,3 +123,4 @@ class Controller(Sofa.PythonScriptController):
             self.node.wall.wallFrame.rest_position=self.node.wall.wallFrame.position
         return 0
 
+>>>>>>> 50a383952f65f166ce6ac66e0c982688b5c71b93
