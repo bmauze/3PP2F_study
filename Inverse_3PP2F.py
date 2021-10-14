@@ -248,7 +248,8 @@ def createScene(rootNode):
 ######################################################
 
     VisuRigidNode = RPCModelNode.createChild('Platform')
-    VisuRigidNode.createObject('MeshSTLLoader', filename='plataforme.stl', name='loader', translation='0 0 0', rotation='0.0 0.0 180', scale3d='1 1 1')
+    # VisuRigidNode.createObject('MeshSTLLoader', filename='plataforme.stl', name='loader', translation='0 0 0', rotation='0.0 0.0 180', scale3d='1 1 1')
+    VisuRigidNode.createObject('MeshSTLLoader', filename='plt_vben_vblend.stl', name='loader', translation='0 0 0', rotation='0.0 0.0 180', scale3d='1 1 1')
     VisuRigidNode.createObject('OglModel', src='@loader', name='visuPlatform')
     VisuRigidNode.createObject('RigidMapping', output='@visuPlatform', index='0')
     
